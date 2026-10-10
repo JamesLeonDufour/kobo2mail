@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!-- kobo2mail: layout=stacked -->
+<!-- Banner: full-width brand hero, white content panel, dark footer band. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>$subject</title>
+</head>
+<body style="margin:0;padding:0;background:#ffffff;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+       style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <tr>
+    <td align="center" style="background:$brand_color;padding:40px 20px 44px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
+        <tr><td style="padding-bottom:18px;">$logo_block</td></tr>
+        <tr>
+          <td>
+            <h1 style="margin:0 0 10px;font-size:30px;line-height:38px;font-weight:800;color:#ffffff;">$title</h1>
+            <p style="margin:0;font-size:16px;line-height:24px;color:#ffffff;opacity:0.88;">$intro</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" style="padding:8px 20px 32px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
+        <tr><td>$answers_table</td></tr>
+        <tr><td style="padding-top:24px;">$button_block</td></tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" style="background:#1a202c;padding:24px 20px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
+        <tr>
+          <td style="font-size:12px;line-height:18px;color:#a0aec0;">
+            $footer<br>
+            <span style="color:#ffffff;">Submission #$submission_id</span> &middot; $submitted_at
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

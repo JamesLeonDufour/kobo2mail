@@ -4,3 +4,4 @@ __pycache__/
 config.local.json
 preview*.html
 submissions/
+gallery.html

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from kobo2mail.config import DEFAULT_FORM
 from kobo2mail.mailer import build_message
-from kobo2mail.render import placeholder_values, render_email
+from kobo2mail.render import placeholder_values, render_email, tint
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -44,6 +44,38 @@ class RenderTest(unittest.TestCase):
         sub = dict(self.sub, **{"contact/name": "<b>Bob</b>"})
         _, html, _ = render_email(sub, cfg(title="Thanks $name"), self.template)
         self.assertIn("Thanks &lt;b&gt;Bob&lt;/b&gt;", html)
+
+    def test_layout_hint_and_override(self):
+        hinted = "<!-- kobo2mail: layout=columns -->$answers_table"
+        _, html, _ = render_email(self.sub, cfg(), hinted)
+        self.assertIn('width="38%"', html)
+        _, html, _ = render_email(self.sub, cfg(layout="stacked"), hinted)
+        self.assertNotIn('width="38%"', html)
+
+    def test_tint(self):
+        self.assertEqual(tint("#000000", 0.5), "#808080")
+        self.assertEqual(tint("#fff"), "#ffffff")
+        self.assertEqual(tint("not-a-color"), "#f7fafc")
+
+    def test_button_and_vars(self):
+        c = cfg(button_label="Call $org", button_url="https://x.org/?id=$submission_id",
+                vars={"org": "ACME"})
+        _, html, text = render_email(self.sub, c, "$button_block")
+        self.assertIn('href="https://x.org/?id=412345678"', html)
+        self.assertIn("Call ACME", html)
+        self.assertIn("Call ACME: https://x.org/?id=412345678", text)
+
+    def test_button_rejects_unsafe_url(self):
+        c = cfg(button_label="Go", button_url="javascript:alert(1)")
+        _, html, _ = render_email(self.sub, c, "$button_block")
+        self.assertEqual(html, "")
+
+    def test_all_templates_fully_substituted(self):
+        c = cfg(button_label="Go", button_url="https://x.org")
+        for path in sorted((ROOT / "templates").glob("*.html")):
+            _, html, _ = render_email(self.sub, c, path.read_text(encoding="utf-8"))
+            self.assertNotIn("$", html, path.name)
+            self.assertIn("Household 2", html, path.name)
 
     def test_message_parts(self):
         subject, html, text = render_email(self.sub, cfg(), self.template)

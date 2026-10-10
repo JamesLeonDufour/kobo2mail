@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!-- kobo2mail: layout=stacked -->
+<!-- Modern: soft tinted background, centered card, check badge, reference pills. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>$subject</title>
+</head>
+<body style="margin:0;padding:0;background:$brand_tint;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:$brand_tint;">
+  <tr>
+    <td align="center" style="padding:32px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
+        <tr><td align="center" style="padding:0 0 20px;">$logo_block</td></tr>
+        <tr>
+          <td style="background:#ffffff;border-radius:14px;border-top:6px solid $brand_color;padding:36px 32px 28px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" align="center">
+              <tr>
+                <td width="56" height="56" align="center" valign="middle"
+                    style="width:56px;height:56px;border-radius:28px;background:$brand_color;color:#ffffff;font-size:28px;line-height:56px;font-weight:bold;">&#10003;</td>
+              </tr>
+            </table>
+            <h1 style="margin:20px 0 8px;text-align:center;font-size:24px;line-height:32px;color:#1a202c;font-weight:700;">$title</h1>
+            <p style="margin:0 0 20px;text-align:center;font-size:15px;line-height:23px;color:#4a5568;">$intro</p>
+            <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto 12px;">
+              <tr>
+                <td style="background:$brand_tint;color:$brand_color;border-radius:14px;padding:6px 14px;font-size:12px;font-weight:bold;">Ref. #$submission_id</td>
+                <td width="8"></td>
+                <td style="background:#f1f4f8;color:#4a5568;border-radius:14px;padding:6px 14px;font-size:12px;">$submitted_at</td>
+              </tr>
+            </table>
+            $answers_table
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr><td align="center" style="padding-top:20px;">$button_block</td></tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:20px 24px 0;font-size:12px;line-height:18px;color:#718096;">$footer</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

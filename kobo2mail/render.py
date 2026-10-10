@@ -65,47 +65,99 @@ def _html_value(text):
     return escape(text).replace("\n", "<br>")
 
 
-def _rows_html(entries, color):
+LAYOUTS = ("stacked", "columns")
+_LAYOUT_HINT = re.compile(r"<!--\s*kobo2mail:\s*layout\s*=\s*(\w+)\s*-->")
+
+
+def _section_html(label, color, span):
+    return (
+        f'<tr><td colspan="{span}" style="padding:22px 0 6px;font-size:13px;font-weight:bold;'
+        f'text-transform:uppercase;letter-spacing:0.06em;color:{color};'
+        f'border-bottom:2px solid {color};">{escape(label)}</td></tr>'
+    )
+
+
+def _field_html(entry, layout):
+    label, value = escape(entry["label"]), _html_value(entry["value"])
+    if layout == "columns":
+        return (
+            '<tr><td width="38%" valign="top" style="padding:9px 12px 9px 0;'
+            'border-bottom:1px solid #edf2f7;font-size:13px;line-height:20px;color:#718096;">'
+            f'{label}</td><td valign="top" style="padding:9px 0;border-bottom:1px solid #edf2f7;'
+            f'font-size:15px;line-height:20px;color:#1a202c;word-break:break-word;">{value}</td></tr>'
+        )
+    return (
+        '<tr><td style="padding:10px 0;border-bottom:1px solid #edf2f7;">'
+        f'<div style="{_LABEL_STYLE}">{label}</div>'
+        f'<div style="{_VALUE_STYLE}">{value}</div></td></tr>'
+    )
+
+
+def _rows_html(entries, color, layout):
+    span = 2 if layout == "columns" else 1
     rows = []
     for entry in entries:
         if entry["type"] == "section":
-            rows.append(
-                f'<tr><td style="padding:22px 0 6px;font-size:13px;font-weight:bold;'
-                f'text-transform:uppercase;letter-spacing:0.06em;color:{color};'
-                f'border-bottom:2px solid {color};">{escape(entry["label"])}</td></tr>'
-            )
+            rows.append(_section_html(entry["label"], color, span))
         elif entry["type"] == "field":
-            rows.append(
-                '<tr><td style="padding:10px 0;border-bottom:1px solid #edf2f7;">'
-                f'<div style="{_LABEL_STYLE}">{escape(entry["label"])}</div>'
-                f'<div style="{_VALUE_STYLE}">{_html_value(entry["value"])}</div></td></tr>'
-            )
+            rows.append(_field_html(entry, layout))
         else:  # repeat
-            rows.append(
-                f'<tr><td style="padding:22px 0 6px;font-size:13px;font-weight:bold;'
-                f'text-transform:uppercase;letter-spacing:0.06em;color:{color};'
-                f'border-bottom:2px solid {color};">{escape(entry["label"])}</td></tr>'
-            )
+            rows.append(_section_html(entry["label"], color, span))
             for index, item in enumerate(entry["items"], start=1):
                 rows.append(
-                    '<tr><td style="padding:10px 0 0;">'
+                    f'<tr><td colspan="{span}" style="padding:10px 0 0;">'
                     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
                     f'style="background:#f7fafc;border-left:3px solid {color};border-radius:4px;">'
                     '<tr><td style="padding:10px 16px 4px;">'
                     f'<div style="font-size:14px;font-weight:bold;color:#2d3748;">'
                     f'{escape(entry["label"])} {index}</div>'
                     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
-                    f"{_rows_html(item, color)}</table>"
+                    f"{_rows_html(item, color, layout)}</table>"
                     "</td></tr></table></td></tr>"
                 )
     return "".join(rows)
 
 
-def answers_table_html(entries, cfg):
+def resolve_layout(cfg, template_text):
+    """Config 'layout' wins; otherwise the template's <!-- kobo2mail: layout=... --> hint."""
+    layout = cfg.get("layout") or ""
+    if not layout:
+        hint = _LAYOUT_HINT.search(template_text)
+        layout = hint.group(1) if hint else "stacked"
+    return layout if layout in LAYOUTS else "stacked"
+
+
+def answers_table_html(entries, cfg, layout="stacked"):
     return (
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
         'style="border-collapse:collapse;">'
-        f'{_rows_html(entries, escape(cfg["brand_color"]))}</table>'
+        f'{_rows_html(entries, escape(cfg["brand_color"]), layout)}</table>'
+    )
+
+
+def tint(hex_color, amount=0.9):
+    """Mix a #rrggbb color with white; used for soft backgrounds ($brand_tint)."""
+    value = hex_color.lstrip("#")
+    if len(value) == 3:
+        value = "".join(c * 2 for c in value)
+    try:
+        rgb = [int(value[i:i + 2], 16) for i in (0, 2, 4)]
+    except ValueError:
+        return "#f7fafc"
+    return "#" + "".join(f"{round(c + (255 - c) * amount):02x}" for c in rgb)
+
+
+def button_html(cfg, values):
+    label, url = _fill(cfg.get("button_label", ""), values), _fill(cfg.get("button_url", ""), values)
+    if not (label and url.startswith(("https://", "http://", "mailto:"))):
+        return ""
+    color = escape(cfg["brand_color"])
+    return (
+        '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0;"><tr>'
+        f'<td style="border-radius:6px;background:{color};">'
+        f'<a href="{escape(url)}" style="display:inline-block;padding:12px 24px;font-size:15px;'
+        f'font-weight:bold;color:#ffffff;text-decoration:none;border-radius:6px;">{escape(label)}</a>'
+        "</td></tr></table>"
     )
 
 
@@ -132,6 +184,8 @@ def _rows_text(entries, indent=""):
 def render_email(submission, cfg, template_text):
     """Return (subject, html, text) for this submission."""
     values = placeholder_values(submission, cfg)
+    # Free-form template variables from config ("vars"), e.g. $org_name, $contact_phone.
+    values.update({key: _fill(str(text), values) for key, text in cfg.get("vars", {}).items()})
     entries = build_entries(submission, cfg)
 
     subject = " ".join(_fill(cfg["subject"], values).split())
@@ -151,12 +205,17 @@ def render_email(submission, cfg, template_text):
         footer=_html_value(footer),
         subject=_html_value(subject),
         brand_color=escape(cfg["brand_color"]),
+        brand_tint=tint(cfg["brand_color"]),
         logo_block=logo_block,
-        answers_table=answers_table_html(entries, cfg),
+        button_block=button_html(cfg, values),
+        answers_table=answers_table_html(entries, cfg, resolve_layout(cfg, template_text)),
     )
     html = _fill(template_text, html_values)
 
-    text_lines = [title, "", intro, ""] + _rows_text(entries) + ["", "--", footer]
+    text_lines = [title, "", intro, ""] + _rows_text(entries)
+    if html_values["button_block"]:
+        text_lines += ["", f"{_fill(cfg['button_label'], values)}: {_fill(cfg['button_url'], values)}"]
+    text_lines += ["", "--", footer]
     if values["submission_id"]:
         text_lines.append(f"Submission #{values['submission_id']} {values['submitted_at']}".rstrip())
     text = "\n".join(text_lines).strip() + "\n"

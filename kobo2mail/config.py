@@ -23,11 +23,15 @@ DEFAULT_FORM = {
     "hide_empty": True,
     "group_headers": True,
     "ungrouped_label": "Other answers",
+    "layout": "",  # "stacked" | "columns"; empty = template's default
+    "button_label": "",
+    "button_url": "",
+    "vars": {},
 }
 
 # Keys whose dict values are merged (per-form entries extend the default ones)
 # instead of being replaced wholesale.
-_MERGED_DICTS = ("labels", "value_labels")
+_MERGED_DICTS = ("labels", "value_labels", "vars")
 
 
 class ConfigError(ValueError):

@@ -92,7 +92,10 @@ The config is committed to the repo and contains no secrets.
 | `hide_empty` | Skip unanswered questions (default `true`) |
 | `group_headers` | Show a section header for each Kobo group (default `true`) |
 | `ungrouped_label` | Header for questions outside a group that come after a group (default "Other answers") |
-| `template` | Path to the HTML template (default `templates/default.html`) |
+| `template` | Path to the HTML template (default `templates/default.html`). See the email designs section. |
+| `layout` | Answers layout: `stacked` puts each label above its value (best on mobile), `columns` puts the label in a left column. If empty, the template's default is used. |
+| `button_label`, `button_url` | Optional call-to-action button. Placeholders work, for example `https://example.org/status?id=$submission_id`. Only `https://`, `http://` and `mailto:` links are allowed. |
+| `vars` | Your own placeholders, for example `{"org_name": "ACME", "hotline": "+221 …"}`, which you can use as `$org_name`. |
 
 ### Placeholders
 Every simple field is available as a placeholder in `subject`, `title`, `intro`, `footer` and the template:
@@ -102,14 +105,38 @@ Every simple field is available as a placeholder in `subject`, `title`, `intro`,
 
 Extra placeholders:
 - `$submission_id` and `$submitted_at`
-- In the template only: `$answers_table`, `$logo_block` and `$brand_color`
+- Anything you define in `vars`
+- In the template only: `$answers_table`, `$logo_block`, `$button_block`, `$brand_color` and `$brand_tint` (a pale version of the brand color for backgrounds)
 
 Rules:
 - Unknown placeholders render as empty text.
 - In a template, write `$$` to get a literal `$`.
 
+## Email designs
+
+Five ready-made templates are included. All of them follow your `brand_color`, `logo_url` and optional button.
+
+| Template | Style | Default layout |
+|---|---|---|
+| `templates/default.html` | Classic: colored header bar on a grey background, white card | stacked |
+| `templates/modern.html` | Soft tinted background, centered card, check-mark badge, reference and date pills | stacked |
+| `templates/minimal.html` | Letter-like: white page, serif title, short brand rule | stacked |
+| `templates/receipt.html` | Proof of submission: large reference number, dashed separators, two-column answers | columns |
+| `templates/banner.html` | Full-width brand hero, white content, dark footer band | stacked |
+
+To compare them all with your own config, on desktop and mobile widths:
+
+```bash
+python -m kobo2mail.gallery            # writes gallery.html: open it in a browser
+python -m kobo2mail --submission examples/sample_submission.json --template templates/receipt.html --preview preview.html
+```
+
+Then set `"template": "templates/modern.html"` (for example) in `config.json`.
+
 ### Custom design
-Copy [templates/default.html](templates/default.html), change it, and point `template` at your copy. Use inline styles, because email clients ignore most `<style>` blocks.
+Copy any template, change it, and point `template` at your copy.
+- **Styles.** Use inline styles and table layouts, because email clients ignore most `<style>` blocks and modern CSS.
+- **Default layout.** A comment like `<!-- kobo2mail: layout=columns -->` sets the template's default answers layout.
 
 ## Local testing
 

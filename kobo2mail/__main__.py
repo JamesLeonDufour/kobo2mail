@@ -60,6 +60,7 @@ def parse_args(argv):
     parser.add_argument("--config", default="config.json", help="Config file (default: config.json)")
     parser.add_argument("--provider", choices=("gmail", "smtp"),
                         help="Override provider (default: $MAIL_PROVIDER, then config)")
+    parser.add_argument("--template", help="Override the template from config (e.g. templates/modern.html)")
     parser.add_argument("--dry-run", action="store_true", help="Render and print, do not send")
     parser.add_argument("--preview", metavar="FILE", help="Write the HTML body to FILE, do not send")
     return parser.parse_args(argv)
@@ -75,6 +76,8 @@ def main(argv=None):
         return 1
 
     cfg = form_config(config, submission)
+    if args.template:
+        cfg["template"], cfg["template_path"] = args.template, Path(args.template)
     log(f"Form {submission.get('_xform_id_string', '?')}, submission {submission.get('_id', '?')}")
 
     recipient = find_recipient(submission, cfg["email_field"])

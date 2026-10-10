@@ -10,28 +10,63 @@
       "footer": "This is an automatic message.",
       "brand_color": "#2b6cb0",
       "logo_url": "",
-      "include": ["*"],
-      "exclude": ["_*", "meta/*", "formhub/*", "start", "end", "today", "deviceid"],
+      "include": [
+        "*"
+      ],
+      "exclude": [
+        "_*",
+        "meta/*",
+        "formhub/*",
+        "start",
+        "end",
+        "today",
+        "deviceid"
+      ],
       "labels": {},
       "value_labels": {},
       "hide_empty": true,
       "group_headers": true,
-      "ungrouped_label": "Other answers"
+      "ungrouped_label": "Other answers",
+      "layout": "",
+      "button_label": "",
+      "button_url": "",
+      "vars": {}
     },
     "aYourAssetUidHere": {
       "email_field": "respondent/email",
       "subject": "Thanks $first_name - registration #$submission_id",
       "brand_color": "#2f855a",
-      "include": ["respondent/*", "event_choice", "dietary_needs"],
-      "exclude": ["respondent/email"],
+      "include": [
+        "respondent/*",
+        "event_choice",
+        "dietary_needs"
+      ],
+      "exclude": [
+        "respondent/email"
+      ],
       "labels": {
         "respondent": "About you",
         "event_choice": "Session you registered for"
       },
       "value_labels": {
-        "event_choice": {"am": "Morning session", "pm": "Afternoon session"},
-        "dietary_needs": {"veg": "Vegetarian", "halal": "Halal", "none": "None"}
-      }
+        "event_choice": {
+          "am": "Morning session",
+          "pm": "Afternoon session"
+        },
+        "dietary_needs": {
+          "veg": "Vegetarian",
+          "halal": "Halal",
+          "none": "None"
+        }
+      },
+      "template": "templates/receipt.html",
+      "layout": "columns",
+      "button_label": "Check my registration",
+      "button_url": "https://example.org/registrations/$submission_id",
+      "vars": {
+        "org_name": "ACME Events"
+      },
+      "footer": "Sent by $org_name. Questions? Reply to this email."
     }
   }
 }
