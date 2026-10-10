@@ -1,0 +1,60 @@
+name: Send submission email
+
+on:
+  repository_dispatch:
+    types: [kobo_submission]
+  workflow_dispatch:
+    inputs:
+      submission:
+        description: Submission JSON to test with (empty = examples/sample_submission.json)
+        required: false
+        default: ""
+      dry_run:
+        description: Render and print only, do not send
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    # Skipped jobs are not billed: when vars.EMAIL_FIELD is set, a submission
+    # without an address never starts a runner. Unset = the script decides.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      vars.EMAIL_FIELD == '' ||
+      github.event.client_payload.submission[vars.EMAIL_FIELD] != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          # Cone mode always includes root files (config.json).
+          sparse-checkout: |
+            kobo2mail
+            templates
+            examples
+
+      # ubuntu-latest ships Python 3.12: no setup-python, no pip install.
+      - name: Send email
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          MAIL_REPLY_TO: ${{ secrets.MAIL_REPLY_TO }}
+          MAIL_BCC: ${{ secrets.MAIL_BCC }}
+          MAIL_PROVIDER: ${{ vars.MAIL_PROVIDER }}
+          EVENT_NAME: ${{ github.event_name }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          TEST_SUBMISSION: ${{ inputs.submission }}
+        run: |
+          args=""
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            [ "$DRY_RUN" = "true" ] && args="--dry-run"
+            [ -z "$TEST_SUBMISSION" ] && args="$args --submission examples/sample_submission.json"
+          fi
+          python3 -m kobo2mail $args

@@ -1,0 +1,33 @@
+{
+  "provider": "gmail",
+  "forms": {
+    "default": {
+      "email_field": "contact/email",
+      "from_name": "Survey team",
+      "subject": "Thank you $name - copy of your submission",
+      "title": "Thank you, $name!",
+      "intro": "We have received your answers. Here is a copy for your records.",
+      "brand_color": "#2b6cb0",
+      "logo_url": "",
+      "include": ["*"],
+      "exclude": ["_*", "meta/*", "formhub/*", "start", "end", "contact/email", "consent"],
+      "labels": {
+        "contact": "Your details",
+        "contact/name": "Full name",
+        "contact/phone": "Phone number",
+        "services_used": "Services used",
+        "satisfaction": "Overall satisfaction",
+        "household": "Household member",
+        "member_name": "Name",
+        "member_age": "Age"
+      },
+      "value_labels": {
+        "gender": {"f": "Female", "m": "Male", "o": "Other"},
+        "services_used": {"water": "Water point", "health": "Health clinic", "school": "School"},
+        "satisfaction": {"1": "Very unsatisfied", "2": "Unsatisfied", "3": "Neutral", "4": "Satisfied", "5": "Very satisfied"}
+      },
+      "hide_empty": true,
+      "group_headers": true
+    }
+  }
+}

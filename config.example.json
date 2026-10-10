@@ -1,0 +1,37 @@
+{
+  "provider": "gmail",
+  "forms": {
+    "default": {
+      "email_field": "",
+      "from_name": "Survey team",
+      "subject": "Copy of your submission",
+      "title": "Thank you for your submission",
+      "intro": "Here is a copy of the answers you submitted.",
+      "footer": "This is an automatic message.",
+      "brand_color": "#2b6cb0",
+      "logo_url": "",
+      "include": ["*"],
+      "exclude": ["_*", "meta/*", "formhub/*", "start", "end", "today", "deviceid"],
+      "labels": {},
+      "value_labels": {},
+      "hide_empty": true,
+      "group_headers": true,
+      "ungrouped_label": "Other answers"
+    },
+    "aYourAssetUidHere": {
+      "email_field": "respondent/email",
+      "subject": "Thanks $first_name - registration #$submission_id",
+      "brand_color": "#2f855a",
+      "include": ["respondent/*", "event_choice", "dietary_needs"],
+      "exclude": ["respondent/email"],
+      "labels": {
+        "respondent": "About you",
+        "event_choice": "Session you registered for"
+      },
+      "value_labels": {
+        "event_choice": {"am": "Morning session", "pm": "Afternoon session"},
+        "dietary_needs": {"veg": "Vegetarian", "halal": "Halal", "none": "None"}
+      }
+    }
+  }
+}
