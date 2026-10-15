@@ -30,7 +30,11 @@
       "layout": "",
       "button_label": "",
       "button_url": "",
-      "vars": {}
+      "vars": {},
+      "pdf": false,
+      "pdf_template": "templates/pdf.html",
+      "pdf_title": "Copy of your submission",
+      "pdf_filename": "submission-$submission_id.pdf"
     },
     "aYourAssetUidHere": {
       "email_field": "respondent/email",

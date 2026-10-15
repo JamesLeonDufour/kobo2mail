@@ -13,6 +13,7 @@ from pathlib import Path
 from .config import ConfigError, form_config, load_config
 from .fields import find_recipient
 from .mailer import MailError, build_message, send
+from .pdf import PdfError, render_pdf
 from .render import render_email
 
 IN_ACTIONS = os.environ.get("GITHUB_ACTIONS") == "true"
@@ -63,6 +64,7 @@ def parse_args(argv):
     parser.add_argument("--template", help="Override the template from config (e.g. templates/modern.html)")
     parser.add_argument("--dry-run", action="store_true", help="Render and print, do not send")
     parser.add_argument("--preview", metavar="FILE", help="Write the HTML body to FILE, do not send")
+    parser.add_argument("--pdf-out", metavar="FILE", help="Write the PDF copy to FILE, do not send")
     return parser.parse_args(argv)
 
 
@@ -99,6 +101,26 @@ def main(argv=None):
         log(f"Preview written to {args.preview}")
         return 0
 
+    if args.pdf_out:
+        try:
+            _, data = render_pdf(submission, cfg)
+        except PdfError as exc:
+            log(f"ERROR: {exc}")
+            return 1
+        Path(args.pdf_out).write_bytes(data)
+        log(f"PDF written to {args.pdf_out}")
+        return 0
+
+    attachments = []
+    if cfg["pdf"]:
+        try:
+            filename, data = render_pdf(submission, cfg)
+            attachments.append((filename, data))
+            log(f"PDF attached ({len(data) // 1024} KB).")
+        except PdfError as exc:
+            # The respondent still gets their copy, just without the PDF.
+            log(f"WARNING: PDF skipped: {exc}")
+
     sender = os.environ.get("MAIL_FROM", "").strip() or os.environ.get("SMTP_USER", "").strip()
     msg = build_message(
         sender=sender or "sender@example.org",
@@ -109,6 +131,7 @@ def main(argv=None):
         html=html,
         reply_to=os.environ.get("MAIL_REPLY_TO", "").strip(),
         bcc=os.environ.get("MAIL_BCC", "").strip(),
+        attachments=attachments,
     )
 
     if args.dry_run:
@@ -116,6 +139,8 @@ def main(argv=None):
         for header in ("From", "To", "Reply-To", "Subject"):
             if msg[header]:
                 print(f"{header}: {msg[header]}")
+        for filename, _ in attachments:
+            print(f"Attachment: {filename}")
         print()
         print(text)
         return 0

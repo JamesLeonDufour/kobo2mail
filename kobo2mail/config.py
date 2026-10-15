@@ -27,6 +27,10 @@ DEFAULT_FORM = {
     "button_label": "",
     "button_url": "",
     "vars": {},
+    "pdf": False,  # attach a PDF copy (needs Chrome, Chromium or Edge)
+    "pdf_template": "templates/pdf.html",
+    "pdf_title": "Copy of your submission",
+    "pdf_filename": "submission-$submission_id.pdf",
 }
 
 # Keys whose dict values are merged (per-form entries extend the default ones)
@@ -59,6 +63,8 @@ def load_config(path):
         for key in ("include", "exclude"):
             if key in form and not isinstance(form[key], list):
                 raise ConfigError(f"forms.{name}.{key} must be a list of patterns")
+        if "pdf" in form and not isinstance(form["pdf"], bool):
+            raise ConfigError(f"forms.{name}.pdf must be true or false")
         for key in _MERGED_DICTS:
             if key in form and not isinstance(form[key], dict):
                 raise ConfigError(f"forms.{name}.{key} must be an object")
@@ -83,4 +89,5 @@ def form_config(config, submission):
     if asset_uid and asset_uid in forms:
         _merge(resolved, forms[asset_uid])
     resolved["template_path"] = Path(config["base_dir"]) / resolved["template"]
+    resolved["pdf_template_path"] = Path(config["base_dir"]) / resolved["pdf_template"]
     return resolved

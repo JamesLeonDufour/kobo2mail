@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!-- kobo2mail: layout=columns -->
+<!-- PDF: printed by headless Chrome, so real CSS works here (unlike the email templates). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>$subject</title>
+<style>
+  @page { size: A4; margin: 16mm 16mm 18mm; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font-family: "Segoe UI", Roboto, "Noto Sans", "DejaVu Sans", Helvetica, Arial, sans-serif; color: #1a202c; }
+  .bar { height: 6px; background: $brand_color; border-radius: 3px; }
+  .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding: 18px 0 14px; border-bottom: 1px solid #e2e8f0; }
+  .head h1 { margin: 0; font-size: 22px; line-height: 28px; }
+  .head img { height: 36px; }
+  .meta { display: flex; gap: 8px; margin: 14px 0 6px; font-size: 11px; }
+  .pill { padding: 4px 10px; border-radius: 10px; background: #f1f4f8; color: #4a5568; }
+  .pill.ref { background: $brand_tint; color: $brand_color; font-weight: bold; }
+  .answers { font-size: 13px; }
+  .answers tr, .answers table { break-inside: avoid; page-break-inside: avoid; }
+  .foot { margin-top: 28px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 10px; color: #718096; }
+</style>
+</head>
+<body>
+  <div class="bar"></div>
+  <div class="head">
+    <h1>$title</h1>
+    $logo_block
+  </div>
+  <div class="meta">
+    <span class="pill ref">Ref. #$submission_id</span>
+    <span class="pill">$submitted_at</span>
+  </div>
+  <div class="answers">$answers_table</div>
+  <div class="foot">$footer</div>
+</body>
+</html>

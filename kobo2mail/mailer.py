@@ -14,7 +14,8 @@ class MailError(RuntimeError):
     pass
 
 
-def build_message(*, sender, sender_name, to, subject, text, html, reply_to="", bcc=""):
+def build_message(*, sender, sender_name, to, subject, text, html, reply_to="", bcc="", attachments=()):
+    """attachments: (filename, pdf_bytes) pairs."""
     msg = EmailMessage()
     msg["From"] = formataddr((sender_name, sender)) if sender_name else sender
     msg["To"] = to
@@ -27,6 +28,8 @@ def build_message(*, sender, sender_name, to, subject, text, html, reply_to="", 
         msg["Bcc"] = bcc
     msg.set_content(text)
     msg.add_alternative(html, subtype="html")
+    for filename, data in attachments:
+        msg.add_attachment(data, maintype="application", subtype="pdf", filename=filename)
     return msg
 
 

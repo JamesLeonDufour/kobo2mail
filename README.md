@@ -18,6 +18,7 @@
   <a href="#-email-designs">Designs</a> ·
   <a href="#-quick-start">Quick start</a> ·
   <a href="#%EF%B8%8F-configuration">Configuration</a> ·
+  <a href="#-pdf-copy">PDF copy</a> ·
   <a href="#-staying-inside-the-free-tier">Free tier</a> ·
   <a href="#-privacy">Privacy</a>
 </p>
@@ -38,7 +39,7 @@
     </td>
     <td width="33%" valign="top">
       <h3>🎨 Five email designs</h3>
-      Responsive HTML with a plain-text fallback, your brand color and logo, an optional button, and section and repeat-group cards.
+      Responsive HTML with a plain-text fallback, your brand color and logo, an optional button, and section and repeat-group cards. Optionally, a <a href="#-pdf-copy">PDF copy</a> is attached.
     </td>
   </tr>
   <tr>
@@ -52,7 +53,7 @@
     </td>
     <td valign="top">
       <h3>🐍 Zero dependencies</h3>
-      Uses only the Python standard library and the Python preinstalled on the runner. Works with Gmail or any SMTP server.
+      Uses only the Python standard library and the Python preinstalled on the runner. The PDF copy uses the runner's preinstalled Chrome. Works with Gmail or any SMTP server.
     </td>
   </tr>
 </table>
@@ -273,6 +274,7 @@ In Kobo, open your project → **Settings → REST Services → Register a new s
 > - **Status.** Kobo shows **HTTP 204** when GitHub accepted the event.
 
 ### 5️⃣ Test it
+- **Demo form:** no form yet? Upload [`examples/kobo2mail_demo_form.xlsx`](examples/kobo2mail_demo_form.xlsx) to Kobo and deploy it. Its question names (`contact/name`, `contact/email`, `gender`, `services_used`, `satisfaction`, the `household` repeat…) match the default `config.json`, so set `EMAIL_FIELD` to `contact/email` and it works as is.
 - **From Kobo:** submit the form, then watch **Actions → Send submission email**.
 - **Without Kobo:** click **Run workflow**. Leave *Submission JSON* empty to use the sample, and untick `dry_run` to really send.
 
@@ -331,9 +333,36 @@ flowchart LR
 | `ungrouped_label` | Header for questions outside a group that come after a group (default "Other answers") |
 | `button_label`, `button_url` | Optional call-to-action button. Placeholders work. Only `https`, `http` and `mailto` links are allowed. |
 | `vars` | Your own placeholders, such as `{"org_name": "ACME"}`, used as `$org_name` |
+| `pdf` | `true` attaches a PDF copy of the answers (default `false`). See [PDF copy](#-pdf-copy). |
+| `pdf_title` | Heading of the PDF (default "Copy of your submission"). Placeholders work. |
+| `pdf_filename` | Attachment name (default `submission-$submission_id.pdf`). Placeholders work; unsafe characters become `_`. |
+| `pdf_template` | Print template (default `templates/pdf.html`). Real CSS works here, unlike in email templates. |
 
 See [`config.example.json`](config.example.json) for a full example with two forms.
 </details>
+
+---
+
+## 📎 PDF copy
+
+Each email can carry a PDF of the same answers: same fields, labels and choice labels, on A4 with a header, reference number and date. It is **off by default**. To turn it on, add `"pdf": true` to `forms.default` (all forms) or to one `forms.‹asset uid›` in `config.json`:
+
+```jsonc
+"default": {
+  "pdf": true,
+  "pdf_title": "Copy of your submission",          // heading of the PDF
+  "pdf_filename": "submission-$submission_id.pdf"  // attachment name; placeholders work
+}
+```
+
+- **No install.** The PDF is printed by headless Chrome, which is already on GitHub's `ubuntu-latest` runners. Locally, kobo2mail finds Chrome, Chromium or Edge, or uses `CHROME_PATH`.
+- **Any script.** Accents, Arabic, Cyrillic and other scripts render as they do in a browser.
+- **Never blocks the email.** If the PDF cannot be made, the email is still sent without it and the log shows a warning.
+- **Cost.** It adds about 2–3 s per run, still well inside the 1 billed minute.
+
+```bash
+python -m kobo2mail --submission examples/sample_submission.json --pdf-out copy.pdf   # look at the PDF
+```
 
 ---
 
@@ -361,6 +390,7 @@ GitHub bills each job **rounded up to the next minute**, so the goal is *one sho
 ```bash
 python -m unittest discover -s tests -v                                                   # offline tests
 python -m kobo2mail --submission examples/sample_submission.json --preview preview.html   # open in a browser
+python -m kobo2mail --submission examples/sample_submission.json --pdf-out copy.pdf        # PDF copy (needs Chrome or Edge)
 python -m kobo2mail --submission examples/sample_submission.json --dry-run               # print, don't send
 python -m kobo2mail --submission examples/sample_submission.json --template templates/receipt.html --preview preview.html
 ```
@@ -384,7 +414,7 @@ To send a real email:
 
 ## ⚠️ Limits
 
-- **Attachments.** Photos and files are not attached, because their Kobo URLs require authentication.
+- **Attachments.** Apart from the optional [PDF copy](#-pdf-copy), photos and files are not attached, because their Kobo URLs require authentication.
 - **Gmail quota.** Gmail allows about **500 recipients a day**. Use an SMTP relay for more.
 - **Failed runs.** HTTP 204 only means GitHub accepted the event. If sending fails later, the run fails and Kobo does **not** retry. Turn on GitHub's failure notifications.
 - **Email clients.** Outlook for Windows ignores some CSS, so rounded corners and badges appear square there.
@@ -400,9 +430,10 @@ kobo2mail/
 │   ├── fields.py     # recipient lookup, include/exclude, labels, repeats
 │   ├── render.py     # placeholders, answers table, HTML + text
 │   ├── mailer.py     # Gmail / SMTP sending
+│   ├── pdf.py        # PDF copy via headless Chrome
 │   └── gallery.py    # side-by-side preview of every template
-├── templates/        # default · modern · minimal · receipt · banner
-├── examples/sample_submission.json
+├── templates/        # default · modern · minimal · receipt · banner · pdf (print)
+├── examples/         # sample_submission.json · kobo2mail_demo_form.xlsx (XLSForm)
 ├── tests/            # offline unit tests (python -m unittest)
 └── config.json       # your settings (no secrets)
 ```
